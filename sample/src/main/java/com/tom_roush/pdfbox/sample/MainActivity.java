@@ -1,6 +1,8 @@
 package com.tom_roush.pdfbox.sample;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -10,6 +12,9 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -63,19 +68,32 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (ContextCompat.checkSelfPermission(MainActivity.this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
+                    android.Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            } else {
+                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 666);
+            }
+        }
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
+        // 豐富菜單； 這會將項目添加到操作欄（如果存在）。
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
     /**
-     * Initializes variables used for convenience
+     * 初始化變量以方便使用
      */
     private void setup() {
-        // Enable Android asset loading
+        // 啟用 Android 資源加載
         PDFBoxResourceLoader.init(getApplicationContext());
-        // Find the root of the external storage.
+        // 找到外部存儲的根目錄。
 
         root = getApplicationContext().getCacheDir();
         assetManager = getAssets();
@@ -83,14 +101,14 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * Creates a new PDF from scratch and saves it to a file
+     * 從頭開始創建新的 PDF 並將其保存到文件中
      */
     public void createPdf(View v) {
         PDDocument document = new PDDocument();
         PDPage page = new PDPage();
         document.addPage(page);
 
-        // Create a new font object selecting one of the PDF base fonts
+        // 選擇 PDF 基本字體之一創建新字體對象
         PDFont font = PDType1Font.HELVETICA;
         // Or a custom font
 //        try
@@ -107,10 +125,10 @@ public class MainActivity extends Activity {
         PDPageContentStream contentStream;
 
         try {
-            // Define a content stream for adding to the PDF
+            // 定義用於添加到 PDF 的內容流
             contentStream = new PDPageContentStream(document, page);
 
-            // Write Hello World in blue text
+            // 用藍色文本寫“Hello World”
             contentStream.beginText();
             contentStream.setNonStrokingColor(15, 38, 192);
             contentStream.setFont(font, 12);
@@ -118,28 +136,28 @@ public class MainActivity extends Activity {
             contentStream.showText("Hello World");
             contentStream.endText();
 
-            // Load in the images
+            // 加載圖像
             InputStream in = assetManager.open("falcon.jpg");
             InputStream alpha = assetManager.open("trans.png");
 
-            // Draw a green rectangle
+            // 畫一個綠色的矩形
             contentStream.addRect(5, 500, 100, 100);
             contentStream.setNonStrokingColor(0, 255, 125);
             contentStream.fill();
 
-            // Draw the falcon base image
+            // 繪製獵鷹基礎圖像
             PDImageXObject ximage = JPEGFactory.createFromStream(document, in);
             contentStream.drawImage(ximage, 20, 20);
 
-            // Draw the red overlay image
+            // 繪製紅色疊加圖像
             Bitmap alphaImage = BitmapFactory.decodeStream(alpha);
             PDImageXObject alphaXimage = LosslessFactory.createFromImage(document, alphaImage);
             contentStream.drawImage(alphaXimage, 20, 20 );
 
-            // Make sure that the content stream is closed:
+            // 確保內容流已關閉：
             contentStream.close();
 
-            // Save the final pdf document to a file
+            // 將最終的 pdf 文檔保存到文件中
             String path = root.getAbsolutePath() + "/Created.pdf";
             document.save(path);
             document.close();
@@ -151,26 +169,26 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * Loads an existing PDF and renders it to a Bitmap
+     * 加載現有 PDF 並將其渲染為位圖
      */
     public void renderFile(View v) {
-        // Render the page and save it to an image file
+        // 渲染頁面並將其保存到圖像文件
         try {
-            // Load in an already created PDF
+            // 加載已創建的 PDF
             PDDocument document = PDDocument.load(assetManager.open("Created.pdf"));
             // Create a renderer for the document
             PDFRenderer renderer = new PDFRenderer(document);
-            // Render the image to an RGB Bitmap
+            // 為文檔創建渲染器
             pageImage = renderer.renderImage(0, 1, ImageType.RGB);
 
-            // Save the render result to an image
+            // 將渲染結果保存到圖像
             String path = root.getAbsolutePath() + "/render.jpg";
             File renderFile = new File(path);
             FileOutputStream fileOut = new FileOutputStream(renderFile);
             pageImage.compress(Bitmap.CompressFormat.JPEG, 100, fileOut);
             fileOut.close();
             tv.setText("Successfully rendered image to " + path);
-            // Optional: display the render result on screen
+            // 可選：在屏幕上顯示渲染結果
             displayRenderedImage();
         }
         catch (IOException e)
@@ -180,19 +198,19 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * Fills in a PDF form and saves the result
+     * 填寫 PDF 表單並保存結果
      */
     public void fillForm(View v) {
         try {
-            // Load the document and get the AcroForm
+            // 加載文檔並獲取 AcroForm
             PDDocument document = PDDocument.load(assetManager.open("FormTest.pdf"));
             PDDocumentCatalog docCatalog = document.getDocumentCatalog();
             PDAcroForm acroForm = docCatalog.getAcroForm();
 
-            // Fill the text field
+            // 填寫文本字段
             PDTextField field = (PDTextField) acroForm.getField("TextField");
             field.setValue("Filled Text Field");
-            // Optional: don't allow this field to be edited
+            // 可選：不允許編輯該字段
             field.setReadOnly(true);
 
             PDField checkbox = acroForm.getField("Checkbox");
@@ -220,7 +238,7 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * Strips the text from a PDF and displays the text on screen
+     * 從 PDF 中刪除文本並在屏幕上顯示文本
      */
     public void stripText(View v) {
         String parsedText = null;
@@ -253,22 +271,22 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * Creates a simple pdf and encrypts it
+     * 創建一個簡單的 pdf 並對其進行加密
      */
     public void createEncryptedPdf(View v)
     {
         String path = root.getAbsolutePath() + "/crypt.pdf";
 
-        int keyLength = 128; // 128 bit is the highest currently supported
+        int keyLength = 128; // 目前支持最高128位
 
-        // Limit permissions of those without the password
+        // 限制沒有密碼的人的權限
         AccessPermission ap = new AccessPermission();
         ap.setCanPrint(false);
 
-        // Sets the owner password and user password
+        // 設置所有者密碼和用戶密碼
         StandardProtectionPolicy spp = new StandardProtectionPolicy("12345", "hi", ap);
 
-        // Setups up the encryption parameters
+        // 設置加密參數
         spp.setEncryptionKeyLength(keyLength);
         spp.setPermissions(ap);
         BouncyCastleProvider provider = new BouncyCastleProvider();
@@ -284,7 +302,7 @@ public class MainActivity extends Activity {
         {
             PDPageContentStream contentStream = new PDPageContentStream(document, page);
 
-            // Write Hello World in blue text
+            // 用藍色文本寫“Hello World”
             contentStream.beginText();
             contentStream.setNonStrokingColor(15, 38, 192);
             contentStream.setFont(font, 12);
@@ -293,8 +311,8 @@ public class MainActivity extends Activity {
             contentStream.endText();
             contentStream.close();
 
-            // Save the final pdf document to a file
-            document.protect(spp); // Apply the protections to the PDF
+            // 將最終的 pdf 文檔保存到文件中
+            document.protect(spp); // 對 PDF 應用保護
             document.save(path);
             document.close();
             tv.setText("Successfully wrote PDF to " + path);

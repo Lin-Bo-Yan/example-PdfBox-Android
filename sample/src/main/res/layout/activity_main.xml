@@ -12,7 +12,7 @@
         android:id="@+id/buttonCreate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Create PDF"
+        android:text="創建 PDF"
         android:layout_alignParentTop="true"
         android:layout_marginTop="10dp"
         android:onClick="createPdf" />
@@ -21,7 +21,7 @@
         android:id="@+id/buttonRender"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Render PDF to Image"
+        android:text="將 PDF 渲染為圖像"
         android:layout_below="@+id/buttonCreate"
         android:layout_marginTop="10dp"
         android:onClick="renderFile" />
@@ -30,7 +30,7 @@
         android:id="@+id/buttonFillForm"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Fill PDF Form"
+        android:text="填寫 PDF 表格"
         android:layout_below="@+id/buttonRender"
         android:layout_marginTop="10dp"
         android:onClick="fillForm" />
@@ -39,7 +39,7 @@
         android:id="@+id/buttonStripText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Strip Text From PDF"
+        android:text="從 PDF 中刪除文本"
         android:layout_below="@+id/buttonFillForm"
         android:layout_marginTop="10dp"
         android:onClick="stripText" />
@@ -48,7 +48,7 @@
         android:id="@+id/buttonCreateEncrypted"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Create Encrypted PDF"
+        android:text="創建加密 PDF"
         android:layout_below="@+id/buttonStripText"
         android:layout_marginTop="10dp"
         android:onClick="createEncryptedPdf" />
