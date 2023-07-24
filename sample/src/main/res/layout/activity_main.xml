@@ -53,6 +53,15 @@
         android:layout_marginTop="10dp"
         android:onClick="createEncryptedPdf" />
 
+    <Button
+        android:id="@+id/watermarkFunction"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="浮水印的功能"
+        android:layout_below="@+id/buttonStripText"
+        android:layout_marginTop="10dp"
+        android:onClick="watermarkFunction" />
+
     <TextView
         android:id="@+id/statusTextView"
         android:layout_width="wrap_content"

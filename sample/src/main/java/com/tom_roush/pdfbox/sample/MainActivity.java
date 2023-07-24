@@ -6,7 +6,9 @@ import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -28,6 +30,8 @@ import com.tom_roush.pdfbox.pdmodel.PDDocument;
 import com.tom_roush.pdfbox.pdmodel.PDDocumentCatalog;
 import com.tom_roush.pdfbox.pdmodel.PDPage;
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream;
+import com.tom_roush.pdfbox.pdmodel.PDPageTree;
+import com.tom_roush.pdfbox.pdmodel.common.PDRectangle;
 import com.tom_roush.pdfbox.pdmodel.encryption.AccessPermission;
 import com.tom_roush.pdfbox.pdmodel.encryption.StandardProtectionPolicy;
 import com.tom_roush.pdfbox.pdmodel.font.PDFont;
@@ -77,6 +81,12 @@ public class MainActivity extends Activity {
             } else {
                 ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 666);
             }
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 666);
         }
     }
 
@@ -339,5 +349,50 @@ public class MainActivity extends Activity {
                 });
             }
         }.start();
+    }
+
+    public void watermarkFunction(View v) {
+
+        try {
+            PDDocument document = PDDocument.load(assetManager.open("Createdthree.pdf"));
+            PDPageTree pages = document.getPages();
+            //int numberOfPages = doc.getNumberOfPages();
+            //StringUtils.HaoLog("ffdd= "+"頁數 " +numberOfPages);
+
+
+            PDFont font = PDType1Font.HELVETICA_BOLD;
+            float fontSize = 36.0f;
+            for (PDPage page : pages) {
+                PDRectangle mediaBox = page.getMediaBox();
+                PDPageContentStream cs = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
+                cs.beginText();
+                cs.setFont(font, fontSize);
+                cs.setNonStrokingColor(Color.RED);
+
+                // 計算水印文字的位置
+                float stringWidth = font.getStringWidth("這是浮水印") * fontSize / 1000f;
+                float startX = (mediaBox.getWidth() - stringWidth) / 2;
+                float startY = (mediaBox.getHeight() - fontSize) / 2;
+
+                // 添加浮水印文字
+                cs.setTextTranslation(startX, startY);
+                cs.showText("這是浮水印");
+                cs.endText();
+
+                cs.close();
+            }
+
+            // 將最終的 pdf 文檔保存到文件中
+            String path = root.getAbsolutePath() + "/Created.pdf";
+            document.save(path);
+            document.close();
+            tv.setText("已成功將 PDF 寫入" + path);
+
+
+
+
+        } catch (IOException e) {
+            StringUtils.HaoLog("PdfBox-Android"+" Error loading or editing pdf" + e);
+        }
     }
 }
