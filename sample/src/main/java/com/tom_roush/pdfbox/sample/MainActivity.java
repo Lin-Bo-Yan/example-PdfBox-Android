@@ -35,6 +35,7 @@ import com.tom_roush.pdfbox.pdmodel.common.PDRectangle;
 import com.tom_roush.pdfbox.pdmodel.encryption.AccessPermission;
 import com.tom_roush.pdfbox.pdmodel.encryption.StandardProtectionPolicy;
 import com.tom_roush.pdfbox.pdmodel.font.PDFont;
+import com.tom_roush.pdfbox.pdmodel.font.PDType0Font;
 import com.tom_roush.pdfbox.pdmodel.font.PDType1Font;
 import com.tom_roush.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import com.tom_roush.pdfbox.pdmodel.graphics.image.LosslessFactory;
@@ -352,29 +353,39 @@ public class MainActivity extends Activity {
     }
 
     public void watermarkFunction(View v) {
-
         try {
             PDDocument document = PDDocument.load(assetManager.open("Createdthree.pdf"));
             PDPageTree pages = document.getPages();
-            //int numberOfPages = doc.getNumberOfPages();
-            //StringUtils.HaoLog("ffdd= "+"頁數 " +numberOfPages);
+            PDPageContentStream contentStream;
 
-
-            PDFont font = PDType1Font.HELVETICA_BOLD;
+            // 修改此處，加載自訂字體
+            // 注意將 "path/to/NotoSansSC-Regular.otf" 換為你的字體文件路徑
+            PDFont font = PDType0Font.load(document, assetManager.open("SentyDew.ttf"));
             float fontSize = 36.0f;
             for (PDPage page : pages) {
                 PDRectangle mediaBox = page.getMediaBox();
                 PDPageContentStream cs = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true, true);
-                cs.beginText();
-                cs.setFont(font, fontSize);
-                cs.setNonStrokingColor(Color.RED);
+
+                // 定義用於添加到 PDF 的內容流
+                contentStream = new PDPageContentStream(document, page, PDPageContentStream.AppendMode.APPEND, true);
+
+                // 用藍色文本寫“AAA”
+                contentStream.beginText();
+                contentStream.setNonStrokingColor(15, 38, 192);
+                contentStream.setFont(font, 12);
+                contentStream.newLineAtOffset(100, 700);
+                contentStream.showText("這是浮水印");
+                contentStream.endText();
+                contentStream.close();
 
                 // 計算水印文字的位置
-                float stringWidth = font.getStringWidth("這是浮水印") * fontSize / 1000f;
+                float stringWidth = font.getStringWidth("這是浮水印") * fontSize / 1000f;  // 注意，字體大小需與浮水印的字體大小一致
                 float startX = (mediaBox.getWidth() - stringWidth) / 2;
                 float startY = (mediaBox.getHeight() - fontSize) / 2;
 
                 // 添加浮水印文字
+                cs.beginText();
+                cs.setFont(font, 12);
                 cs.setTextTranslation(startX, startY);
                 cs.showText("這是浮水印");
                 cs.endText();
@@ -383,14 +394,10 @@ public class MainActivity extends Activity {
             }
 
             // 將最終的 pdf 文檔保存到文件中
-            String path = root.getAbsolutePath() + "/Created.pdf";
+            String path = root.getAbsolutePath() + "/robert.pdf";
             document.save(path);
             document.close();
             tv.setText("已成功將 PDF 寫入" + path);
-
-
-
-
         } catch (IOException e) {
             StringUtils.HaoLog("PdfBox-Android"+" Error loading or editing pdf" + e);
         }
